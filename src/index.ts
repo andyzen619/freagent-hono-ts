@@ -2,16 +2,18 @@ import { serve } from "@hono/node-server";
 import { Hono } from "hono";
 import fs from "fs";
 import axios from "axios";
-
-import { authenticationToken } from "../authenticationToken.json";
 import { XMLParser } from "fast-xml-parser";
 import sqlite3 from "sqlite3";
+import { promisify } from "util";
+
+import { authenticationToken } from "../authenticationToken.json";
+import YahooFantasyBasketballApi from "./lib/YahooFantasyBasketballApi/index.js";
 
 // Replace these with your Yahoo app credentials
 const CLIENT_ID =
   "dj0yJmk9NWFQVWJadWZ4a3dNJmQ9WVdrOWRYTlFUbk5FWmswbWNHbzlNQT09JnM9Y29uc3VtZXJzZWNyZXQmc3Y9MCZ4PWVl";
 const CLIENT_SECRET = "add36b85715f4023f932adf55de4af46d1fd9716";
-const REDIRECT_URI = "https://2cc2-174-88-88-64.ngrok-free.app/callback";
+const REDIRECT_URI = "https://e81c-174-88-88-64.ngrok-free.app/callback";
 
 // Yahoo API URLs
 const AUTH_URL = "https://api.login.yahoo.com/oauth2/request_auth";
@@ -122,12 +124,6 @@ app.get("/players", async (c) => {
 
   let url = `${FANTASY_API_URL}/league/nba.l.102182/players;status=A;count=3;start=0`;
 
-  const query = c.req.query();
-
-  url = Object.keys(query).reduce((acc, curr) => {
-    return acc + `/${curr}`;
-  }, url);
-
   try {
     const response = await axios.get(url, {
       headers: {
@@ -167,12 +163,52 @@ serve({
   port,
 });
 
-seedDb();
+// Function to promisify database operations
+const execute = promisify((db: sqlite3.Database, sql: string, params?: any[]) =>
+  db.run(sql, params || [])
+);
 
-function seedDb() {
+async function seedDb() {
   console.log("Seeding SQL DB ...");
 
   const db = new sqlite3.Database("fantasy-db");
 
-  console.log(db);
+  try {
+    await execute(
+      db,
+      `CREATE TABLE IF NOT EXISTS players (
+        player_key TEXT PRIMARY KEY,
+        player_id INTEGER NOT NULL,
+        primary_position TEXT NOT NULL
+      )`
+    );
+
+    const YahooFantasyBasketball = YahooFantasyBasketballApi({
+      authenticationToken,
+    });
+
+    const { players } = await YahooFantasyBasketball.getPlayers();
+
+    for (const player of players) {
+      db.run(
+        `INSERT OR REPLACE INTO players (player_key, player_id, primary_position) VALUES (?, ?, ?)`,
+        [player.player_key, player.player_id, player.primary_position],
+        () => {
+          console.log(`Inserted: ${player.name.full}`);
+        }
+      );
+    }
+
+    console.log("Seeding completed successfully.");
+
+    db.get(`select * from players where player_id = 4152`, (error, rows) => {
+      console.log(rows);
+    });
+  } catch (error) {
+    console.error("Error during seeding:", error);
+  } finally {
+    db.close();
+  }
 }
+
+seedDb();

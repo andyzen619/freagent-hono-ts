@@ -1,5 +1,5 @@
 {
-  "name": "fantasy-bball-free-agent-assistant",
+  "name": "yahoo-fantasy-basketball-free-agent-assistant",
   "type": "module",
   "scripts": {
     "dev": "tsx watch src/index.ts"
