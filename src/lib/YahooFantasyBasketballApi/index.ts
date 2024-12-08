@@ -1,4 +1,4 @@
-import axios, { AxiosError, type AxiosResponse } from "axios";
+import axios, { type AxiosResponse } from "axios";
 import { XMLParser } from "fast-xml-parser";
 
 const YAHOO_FANTASY_API_URL = "https://fantasysports.yahooapis.com/fantasy/v2";
@@ -180,7 +180,7 @@ function isTokenExpired(data: string) {
   try {
     const { error } = JSON.parse(data);
 
-    return error.description;
+    return `${error.description}`;
   } catch (error) {
     return "";
   }

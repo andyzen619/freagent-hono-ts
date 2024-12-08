@@ -1,10 +1,9 @@
 import { serve } from "@hono/node-server";
-import { Hono } from "hono";
+import { Hono, type HonoRequest } from "hono";
 import fs from "fs";
 import axios from "axios";
 import { XMLParser } from "fast-xml-parser";
 import sqlite3 from "sqlite3";
-import { promisify } from "util";
 
 import { authenticationToken } from "../authenticationToken.json";
 import YahooFantasyBasketballApi from "./lib/YahooFantasyBasketballApi/index.js";
@@ -12,21 +11,113 @@ import YahooFantasyBasketballApi from "./lib/YahooFantasyBasketballApi/index.js"
 // Replace these with your Yahoo app credentials
 const CLIENT_ID =
   "dj0yJmk9NWFQVWJadWZ4a3dNJmQ9WVdrOWRYTlFUbk5FWmswbWNHbzlNQT09JnM9Y29uc3VtZXJzZWNyZXQmc3Y9MCZ4PWVl";
+
 const CLIENT_SECRET = "add36b85715f4023f932adf55de4af46d1fd9716";
-const REDIRECT_URI = "https://e81c-174-88-88-64.ngrok-free.app/callback";
 
 // Yahoo API URLs
 const AUTH_URL = "https://api.login.yahoo.com/oauth2/request_auth";
+
 const TOKEN_URL = "https://api.login.yahoo.com/oauth2/get_token";
+
 const FANTASY_API_URL = "https://fantasysports.yahooapis.com/fantasy/v2";
 
 const app = new Hono();
+
+function getUri(req: HonoRequest) {
+  const requestUrl = new URL(req.url);
+
+  const BASE_URI = `https://${requestUrl.host}`;
+
+  const REDIRECT_URI = `${BASE_URI}/callback`;
+
+  return { BASE_URI, REDIRECT_URI };
+}
+
+function execute(
+  db: sqlite3.Database,
+  sql: string,
+  params?: any[],
+  callback?: Function
+): Promise<any> {
+  return new Promise((resolve, reject) => {
+    db.run(sql, params, function (err) {
+      if (err) {
+        reject(err);
+      } else {
+        let result;
+
+        if (this) {
+          result = this;
+        }
+
+        resolve(result);
+      }
+    });
+  });
+}
+
+async function seedDb() {
+  console.log("Seeding 'players' SQL DB ...");
+
+  const db = new sqlite3.Database("fantasy-db");
+
+  try {
+    await execute(
+      db,
+      `CREATE TABLE IF NOT EXISTS players (
+        player_key TEXT PRIMARY KEY,
+        player_id INTEGER NOT NULL,
+        primary_position TEXT NOT NULL
+      )`
+    );
+
+    const { getPlayers } = YahooFantasyBasketballApi({
+      authenticationToken,
+    });
+
+    const { players } = await getPlayers();
+
+    await players.reduce(async (accPromise: any, curr: any) => {
+      const player = curr;
+
+      let seededPlayer;
+
+      const acc = await accPromise;
+
+      await execute(
+        db,
+        `INSERT OR REPLACE INTO players (player_key, player_id, primary_position) VALUES (?, ?, ?)`,
+        [player.player_key, player.player_id, player.primary_position]
+      );
+
+      return [...acc, seededPlayer];
+    }, []);
+
+    db.each(
+      `select * from players where player_id like ?`,
+      ["4%"],
+      (error, rows) => {
+        if (error) {
+          console.error(error);
+        } else {
+          console.log(rows);
+        }
+      }
+    );
+  } catch (error) {
+    console.error("Error during seeding:", error);
+  } finally {
+    db.close();
+  }
+}
 
 app.get("/", (c) => {
   return c.text("Hello Fantasy!");
 });
 
 app.get("/login", (c) => {
+  const { REDIRECT_URI } = getUri(c.req);
+
   const authParams = new URLSearchParams({
     client_id: CLIENT_ID,
     redirect_uri: REDIRECT_URI,
@@ -41,6 +132,8 @@ app.get("/login", (c) => {
 
 app.get("/callback", async (c) => {
   const { code } = c.req.query();
+
+  const { REDIRECT_URI } = getUri(c.req);
 
   try {
     const tokenResponse = await axios.post(
@@ -162,53 +255,5 @@ serve({
   fetch: app.fetch,
   port,
 });
-
-// Function to promisify database operations
-const execute = promisify((db: sqlite3.Database, sql: string, params?: any[]) =>
-  db.run(sql, params || [])
-);
-
-async function seedDb() {
-  console.log("Seeding SQL DB ...");
-
-  const db = new sqlite3.Database("fantasy-db");
-
-  try {
-    await execute(
-      db,
-      `CREATE TABLE IF NOT EXISTS players (
-        player_key TEXT PRIMARY KEY,
-        player_id INTEGER NOT NULL,
-        primary_position TEXT NOT NULL
-      )`
-    );
-
-    const YahooFantasyBasketball = YahooFantasyBasketballApi({
-      authenticationToken,
-    });
-
-    const { players } = await YahooFantasyBasketball.getPlayers();
-
-    for (const player of players) {
-      db.run(
-        `INSERT OR REPLACE INTO players (player_key, player_id, primary_position) VALUES (?, ?, ?)`,
-        [player.player_key, player.player_id, player.primary_position],
-        () => {
-          console.log(`Inserted: ${player.name.full}`);
-        }
-      );
-    }
-
-    console.log("Seeding completed successfully.");
-
-    db.get(`select * from players where player_id = 4152`, (error, rows) => {
-      console.log(rows);
-    });
-  } catch (error) {
-    console.error("Error during seeding:", error);
-  } finally {
-    db.close();
-  }
-}
 
 seedDb();
