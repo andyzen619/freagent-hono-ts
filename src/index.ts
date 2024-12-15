@@ -9,8 +9,8 @@ import { pino } from "pino";
 import { authenticationToken } from "../authenticationToken.json";
 import YfbApi from "./lib/YfbApi/index.js";
 
-import seedPlayers from "./seeds/players.js";
-import { execute, range, getUri } from "./lib/utils.js";
+import Players from "./seeds/Players.js";
+import { execute, range, getUri } from "./lib/Utils/index.js";
 
 // Replace these with your Yahoo app credentials
 const CLIENT_ID =
@@ -188,7 +188,7 @@ fs.rm(dbFilename, () => {
 
   const db = new sqlite3.Database(dbFilename);
 
-  seedPlayers({
+  Players.seed({
     db,
     yfbApi: YfbApi({
       authenticationToken,
