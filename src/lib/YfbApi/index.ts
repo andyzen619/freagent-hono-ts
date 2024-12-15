@@ -11,7 +11,7 @@ type YahooFantasyBasketballApiResponse = {
   players: Player[];
 };
 
-type Player = {
+export type Player = {
   player_key: string;
   player_id: number;
   name: {
@@ -70,16 +70,31 @@ type PlayerStatListItem = {
   value: Number | string;
 };
 
-export default function ({ authenticationToken }: InitializationParams) {
+type GetPlayersOptionsParams = {
+  count?: string;
+  start?: string;
+};
+
+export type YfbApi = {
+  getPlayers: (
+    options?: GetPlayersOptionsParams
+  ) => Promise<YahooFantasyBasketballApiResponse>;
+};
+
+export default function ({
+  authenticationToken,
+}: InitializationParams): YfbApi {
   const parser = new XMLParser();
 
   return {
-    getPlayers: async () => {
+    getPlayers: async (options: GetPlayersOptionsParams = {}) => {
+      const { count = "3", start = "0" } = options;
+
       // Semicolon-separated parameters
       const pathParams = {
         status: "A",
-        count: "3",
-        start: "0",
+        count,
+        start,
       };
 
       // Convert the parameters to a semicolon-separated string
