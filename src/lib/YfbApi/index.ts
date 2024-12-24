@@ -1,5 +1,6 @@
 import axios, { type AxiosResponse } from "axios";
 import { XMLParser } from "fast-xml-parser";
+import YfbApiError from "./errors/YfbApiError.js";
 
 const YAHOO_FANTASY_API_URL = "https://fantasysports.yahooapis.com/fantasy/v2";
 
@@ -54,6 +55,7 @@ export type Player = {
   has_player_notes: number;
   player_notes_last_timestamp: number;
   player_stats: PlayerStat;
+  player_advanced_stats: PlayerStat;
 };
 
 type PlayerStat = {
@@ -70,15 +72,67 @@ type PlayerStatListItem = {
   value: Number | string;
 };
 
+/**
+ * Options for filtering player status.
+ */
+export enum GetPlayersOptionsStatusEnum {
+  /** All available players */
+  A = "A",
+  /** Free agents only */
+  FA = "FA",
+  /** Waivers only */
+  W = "W",
+  /** All taken players */
+  T = "T",
+  /** Keepers only */
+  K = "K",
+}
+
+/**
+ * Options for sorting players.
+ */
+export enum GetPlayersOptionsSortEnum {
+  /** Sort by name */
+  NAME = "NAME",
+  /** Sort by overall ranking */
+  OR = "OR",
+  /** Sort by average ranking */
+  AR = "AR",
+  /** Sort by points */
+  PTS = "PTS",
+}
+
+export enum GetPlayersOptionsSortTypeEnum {
+  season = "season",
+  date = "date",
+  lastweek = "lastweek",
+  lastmonth = "lastmonth",
+}
+
 type GetPlayersOptionsParams = {
   count?: string;
   start?: string;
+  status?: GetPlayersOptionsStatusEnum;
+  sort?: string | GetPlayersOptionsSortEnum;
+  sort_type?: GetPlayersOptionsSortTypeEnum;
+};
+
+type StatCategory = {
+  stat_id: number;
+  enabled: number;
+  name: string;
+  display_name: string;
+  group: string;
+  abbr: string;
+  sort_order: number;
+  position_type: string;
 };
 
 export type YfbApi = {
   getPlayers: (
     options?: GetPlayersOptionsParams
   ) => Promise<YahooFantasyBasketballApiResponse>;
+  getStatCategories: () => Promise<StatCategory[]>;
 };
 
 export default function ({
@@ -88,13 +142,21 @@ export default function ({
 
   return {
     getPlayers: async (options: GetPlayersOptionsParams = {}) => {
-      const { count = "3", start = "0" } = options;
+      const {
+        count = "3",
+        start = "0",
+        status = "A",
+        sort = "OR",
+        sort_type = "season",
+      } = options;
 
       // Semicolon-separated parameters
       const pathParams = {
-        status: "A",
+        status,
         count,
         start,
+        sort,
+        sort_type,
       };
 
       // Convert the parameters to a semicolon-separated string
@@ -124,7 +186,20 @@ export default function ({
 
               let jObj = parser.parse(XMLdata);
 
-              const { fantasy_content } = jObj;
+              const { fantasy_content, error } = jObj;
+
+              if (error) {
+                const { description, detail } = error;
+
+                const errorToThrow = new YfbApiError({
+                  message: description,
+                  detail,
+                });
+
+                errorToThrow.detail = detail;
+
+                throw errorToThrow;
+              }
 
               const { league } = fantasy_content;
 
@@ -143,6 +218,46 @@ export default function ({
       const { data } = response as AxiosResponse;
 
       return { players: data } as YahooFantasyBasketballApiResponse;
+    },
+    getStatCategories: async () => {
+      const url = `${YAHOO_FANTASY_API_URL}/league/nba.l.102182/settings`;
+
+      let response;
+
+      try {
+        response = await axios.get(url.toString(), {
+          headers: {
+            Authorization: `Bearer ${authenticationToken}`,
+          },
+          transformResponse: [
+            (data) => {
+              const errorDescription = isTokenExpired(data);
+
+              if (errorDescription) {
+                throw new Error(errorDescription);
+              }
+
+              const XMLdata = data;
+
+              let jObj = parser.parse(XMLdata);
+
+              const { fantasy_content } = jObj;
+
+              const { settings } = fantasy_content.league;
+
+              const { stat_categories } = settings;
+
+              return stat_categories.stats.stat;
+            },
+          ],
+        });
+      } catch (error) {
+        handleAxiosError(error, parser);
+      }
+
+      const { data } = response as AxiosResponse;
+
+      return data;
     },
   };
 }

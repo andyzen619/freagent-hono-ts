@@ -73,5 +73,7 @@ fs.rm(dbFilename, () => {
     execute,
     range,
     logger,
+    batchSize: 3,
+    totalPlayers: 3,
   });
 });
