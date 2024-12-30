@@ -4,10 +4,9 @@ import fs from "fs";
 import sqlite3 from "sqlite3";
 import { pino } from "pino";
 
-import { authenticationToken } from "../authenticationToken.json";
 import YfbApi from "./lib/YfbApi/index.js";
 
-import Players from "./seeds/Players.js";
+import PlayersSeed from "./seeders/Player.js";
 import { execute, range, getUri } from "./lib/Utils/index.js";
 import login from "./routes/login.js";
 import callback from "./routes/callback.js";
@@ -63,17 +62,27 @@ const dbFilename = "fantasy-db";
 fs.rm(dbFilename, () => {
   logger.info("Previous database wiped.");
 
-  const db = new sqlite3.Database(dbFilename);
+  import("../authenticationToken.json")
+    .then((module) => {
+      const { authenticationToken } = module as any;
 
-  Players.seed({
-    db,
-    yfbApi: YfbApi({
-      authenticationToken,
-    }),
-    execute,
-    range,
-    logger,
-    batchSize: 3,
-    totalPlayers: 3,
-  });
+      const db = new sqlite3.Database(dbFilename);
+
+      const yfbApi = YfbApi({
+        authenticationToken,
+      });
+
+      PlayersSeed({
+        db,
+        yfbApi,
+        execute,
+        logger,
+        range,
+      }).seed({
+        range,
+        batchSize: 3,
+        totalPlayers: 3,
+      });
+    })
+    .catch((e) => logger.error(e));
 });
