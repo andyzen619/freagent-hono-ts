@@ -1,4 +1,4 @@
-import { execute, range } from "../lib/Utils/index.js";
+import { execute, range } from "../lib/Utils.js";
 import { type Player, type StatCategory } from "../lib/YfbApi/types.js";
 
 import type { SeederInitParams } from "./types.js";

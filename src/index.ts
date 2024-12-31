@@ -9,7 +9,7 @@ import YfbApiInit from "./lib/YfbApi/index.js";
 import PlayersSeed from "./seeders/Player.js";
 import PlayerStatsSeed from "./seeders/PlayerStat.js";
 
-import { execute, range, getUri } from "./lib/Utils/index.js";
+import { execute, range, getUri } from "./lib/Utils.js";
 import login from "./routes/login.js";
 import callback from "./routes/callback.js";
 import type { Player, YfbApi } from "./lib/YfbApi/types.js";
@@ -115,7 +115,7 @@ fs.rm(dbFilename, () => {
           statCategories,
         });
 
-        await logSeeded({ db, logger });
+        // await logSeeded({ db, logger });
       } finally {
         db.close();
       }
