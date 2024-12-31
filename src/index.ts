@@ -12,13 +12,15 @@ import PlayerStatsSeed from "./seeders/PlayerStat.js";
 import { execute, range, getUri } from "./lib/Utils.js";
 import login from "./routes/login.js";
 import callback from "./routes/callback.js";
-import type { Player, YfbApi } from "./lib/YfbApi/types.js";
+import type { YfbPlayer, YfbApi } from "./lib/YfbApi/types.js";
 
 import {
-  GetPlayersOptionsStatusEnum,
-  GetPlayersOptionsSortEnum,
-  GetPlayersOptionsSortTypeEnum,
+  YfbGetPlayersOptionsStatusEnum,
+  YfbGetPlayersOptionsSortEnum,
+  YfbGetPlayersOptionsSortTypeEnum,
 } from "./lib/YfbApi/types.js";
+
+import initGraphql from "./graphql/initGraphql.js";
 
 const CLIENT_ID =
   "dj0yJmk9NWFQVWJadWZ4a3dNJmQ9WVdrOWRYTlFUbk5FWmswbWNHbzlNQT09JnM9Y29uc3VtZXJzZWNyZXQmc3Y9MCZ4PWVl";
@@ -64,13 +66,7 @@ serve({
   port,
 });
 
-export const graphql = {
-  Query: {
-    helloWorld: (): string => {
-      return "HELLO WORLD!";
-    },
-  },
-};
+export const graphql = initGraphql();
 
 const dbFilename = "fantasy-db";
 
@@ -138,7 +134,7 @@ async function getPlayersFromYfbApi({
   batchSize: number;
   yfbApi: YfbApi;
 }) {
-  const playersFromApi = await jobs.reduce<Promise<Player[]>>(
+  const playersFromApi = await jobs.reduce<Promise<YfbPlayer[]>>(
     async (accPromise: Promise<any>, _: any, jobNumber: number) => {
       const acc = await accPromise;
 
@@ -150,9 +146,9 @@ async function getPlayersFromYfbApi({
         const { players } = await yfbApi.getPlayers({
           count: `${count}`,
           start: `${start}`,
-          status: GetPlayersOptionsStatusEnum.A,
-          sort: GetPlayersOptionsSortEnum.AR,
-          sort_type: GetPlayersOptionsSortTypeEnum.lastweek,
+          status: YfbGetPlayersOptionsStatusEnum.A,
+          sort: YfbGetPlayersOptionsSortEnum.AR,
+          sort_type: YfbGetPlayersOptionsSortTypeEnum.lastweek,
         });
 
         return [...acc, ...players];

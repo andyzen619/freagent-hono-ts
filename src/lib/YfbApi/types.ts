@@ -1,12 +1,12 @@
-export type InitializationParams = {
+export type YfbApiInitializationParams = {
   authenticationToken: string;
 };
 
-export type YahooFantasyBasketballApiResponse = {
-  players: Player[];
+export type YfbApiResponse = {
+  players: YfbPlayer[];
 };
 
-export type Player = {
+export type YfbPlayer = {
   player_key: string;
   player_id: number;
   name: {
@@ -48,20 +48,20 @@ export type Player = {
   };
   has_player_notes: number;
   player_notes_last_timestamp: number;
-  player_stats: PlayerStat;
-  player_advanced_stats: PlayerStat;
+  player_stats: YfbPlayerStat;
+  player_advanced_stats: YfbPlayerStat;
 };
 
-export type PlayerStat = {
+export type YfbPlayerStat = {
   coverage_type: string;
-  stats: PlayerStatList;
+  stats: YfbPlayerStatList;
 };
 
-export type PlayerStatList = {
-  stat: PlayerStatListItem[];
+export type YfbPlayerStatList = {
+  stat: YfbPlayerStatListItem[];
 };
 
-export type PlayerStatListItem = {
+export type YfbPlayerStatListItem = {
   stat_id: Number;
   value: Number | string;
 };
@@ -69,7 +69,7 @@ export type PlayerStatListItem = {
 /**
  * Options for filtering player status.
  */
-export enum GetPlayersOptionsStatusEnum {
+export enum YfbGetPlayersOptionsStatusEnum {
   /** All available players */
   A = "A",
   /** Free agents only */
@@ -85,7 +85,7 @@ export enum GetPlayersOptionsStatusEnum {
 /**
  * Options for sorting players.
  */
-export enum GetPlayersOptionsSortEnum {
+export enum YfbGetPlayersOptionsSortEnum {
   /** Sort by name */
   NAME = "NAME",
   /** Sort by overall ranking */
@@ -96,22 +96,22 @@ export enum GetPlayersOptionsSortEnum {
   PTS = "PTS",
 }
 
-export enum GetPlayersOptionsSortTypeEnum {
+export enum YfbGetPlayersOptionsSortTypeEnum {
   season = "season",
   date = "date",
   lastweek = "lastweek",
   lastmonth = "lastmonth",
 }
 
-export type GetPlayersOptionsParams = {
+export type YfbGetPlayersOptionsParams = {
   count?: string;
   start?: string;
-  status?: GetPlayersOptionsStatusEnum;
-  sort?: string | GetPlayersOptionsSortEnum;
-  sort_type?: GetPlayersOptionsSortTypeEnum;
+  status?: YfbGetPlayersOptionsStatusEnum;
+  sort?: string | YfbGetPlayersOptionsSortEnum;
+  sort_type?: YfbGetPlayersOptionsSortTypeEnum;
 };
 
-export type StatCategory = {
+export type YfbStatCategory = {
   stat_id: number;
   enabled: number;
   name: string;
@@ -123,8 +123,6 @@ export type StatCategory = {
 };
 
 export type YfbApi = {
-  getPlayers: (
-    options?: GetPlayersOptionsParams
-  ) => Promise<YahooFantasyBasketballApiResponse>;
-  getStatCategories: () => Promise<StatCategory[]>;
+  getPlayers: (options?: YfbGetPlayersOptionsParams) => Promise<YfbApiResponse>;
+  getStatCategories: () => Promise<YfbStatCategory[]>;
 };
