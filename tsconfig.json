@@ -11,5 +11,7 @@
     ],
     "jsx": "react-jsx",
     "jsxImportSource": "hono/jsx",
-  }
+  },
+  "extends": "@getcronit/pylon/tsconfig.pylon.json",
+  "include": ["pylon.d.ts", "src/**/*.ts"]
 }

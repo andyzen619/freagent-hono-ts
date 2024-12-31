@@ -1,5 +1,5 @@
 import { serve } from "@hono/node-server";
-import { Hono } from "hono";
+import { app } from "@getcronit/pylon";
 import fs from "fs";
 import sqlite3 from "sqlite3";
 import { pino } from "pino";
@@ -38,8 +38,6 @@ export const logger = pino({
   },
 });
 
-const app = new Hono();
-
 app.get("/", (c) => {
   return c.text("Hello Fantasy!");
 });
@@ -65,6 +63,14 @@ serve({
   fetch: app.fetch,
   port,
 });
+
+export const graphql = {
+  Query: {
+    helloWorld: (): string => {
+      return "HELLO WORLD!";
+    },
+  },
+};
 
 const dbFilename = "fantasy-db";
 
