@@ -41,41 +41,6 @@ export function range(start: number, end: number) {
   return Array.from({ length: end - start + 1 }, (_, i) => i + start);
 }
 
-export async function asyncBatchProcess(items, asyncBatchProcessFn, batchSize) {
-  const batchedItems = items.reduce((acc, curr, index) => {
-    const batchIndex = Math.floor(index / batchSize);
-
-    acc[batchIndex] = acc[batchIndex] || [];
-
-    acc[batchIndex].push(curr);
-
-    return acc;
-  }, []);
-
-  const processedItems = batchedItems.reduce(
-    async (accPromise, curr, index) => {
-      let acc = await accPromise;
-
-      const batchNumber = index;
-
-      const promise = curr.map(async (item) =>
-        asyncBatchProcessFn(item, batchNumber)
-      );
-
-      const processedItems = await Promise.all(promise);
-
-      logger.log(processedItems);
-
-      acc = [...acc, ...processedItems];
-
-      return acc;
-    },
-    []
-  );
-
-  return processedItems;
-}
-
 /**
  * Delays execution for the specified number of seconds.
  *

@@ -1,6 +1,15 @@
 import type { Context } from "hono";
+import type { GetUriFunction } from "./types.js";
 
-export default ({ getUri, CLIENT_ID, AUTH_URL }) =>
+export default ({
+  getUri,
+  CLIENT_ID,
+  AUTH_URL,
+}: {
+  getUri: GetUriFunction;
+  CLIENT_ID: string;
+  AUTH_URL: string;
+}) =>
   function (c: Context) {
     const { REDIRECT_URI } = getUri(c.req);
 

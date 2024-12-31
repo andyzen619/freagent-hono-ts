@@ -1,8 +1,21 @@
 import fs from "fs";
 import axios from "axios";
 import type { Context } from "hono";
+import type { GetUriFunction, Logger } from "./types.js";
 
-export default ({ getUri, logger, TOKEN_URL, CLIENT_ID, CLIENT_SECRET }) =>
+export default ({
+  getUri,
+  logger,
+  TOKEN_URL,
+  CLIENT_ID,
+  CLIENT_SECRET,
+}: {
+  getUri: GetUriFunction;
+  TOKEN_URL: string;
+  CLIENT_ID: string;
+  CLIENT_SECRET: string;
+  logger: Logger;
+}) =>
   async function (c: Context) {
     const { code } = c.req.query();
 

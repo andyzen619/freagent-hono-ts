@@ -29,7 +29,7 @@ const AUTH_URL = "https://api.login.yahoo.com/oauth2/request_auth";
 
 const TOKEN_URL = "https://api.login.yahoo.com/oauth2/get_token";
 
-const logger = pino({
+export const logger = pino({
   transport: {
     target: "pino-pretty",
     options: {
