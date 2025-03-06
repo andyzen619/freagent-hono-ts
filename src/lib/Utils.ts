@@ -1,5 +1,3 @@
-import sqlite3 from "sqlite3";
-
 type GetUriParams = {
   url: string;
 };
@@ -12,29 +10,6 @@ export function getUri({ url }: GetUriParams) {
   const REDIRECT_URI = `${BASE_URI}/callback`;
 
   return { BASE_URI, REDIRECT_URI };
-}
-
-export function execute(
-  db: sqlite3.Database,
-  sql: string,
-  params?: any[],
-  callback?: Function
-): Promise<any> {
-  return new Promise((resolve, reject) => {
-    db.run(sql, params, function (err) {
-      if (err) {
-        reject(err);
-      } else {
-        let result;
-
-        if (this) {
-          result = this;
-        }
-
-        resolve(result);
-      }
-    });
-  });
 }
 
 export function range(start: number, end: number) {

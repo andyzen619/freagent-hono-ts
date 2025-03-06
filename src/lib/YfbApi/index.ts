@@ -5,19 +5,19 @@ import YfbApiError from "./errors/YfbApiError.js";
 const YAHOO_FANTASY_API_URL = "https://fantasysports.yahooapis.com/fantasy/v2";
 
 import type {
-  GetPlayersOptionsParams,
-  InitializationParams,
+  YfbGetPlayersOptionsParams,
+  YfbApiInitializationParams,
   YfbApi,
-  YahooFantasyBasketballApiResponse,
+  YfbApiResponse,
 } from "./types.ts";
 
 export default function ({
   authenticationToken,
-}: InitializationParams): YfbApi {
+}: YfbApiInitializationParams): YfbApi {
   const parser = new XMLParser();
 
   return {
-    getPlayers: async (options: GetPlayersOptionsParams = {}) => {
+    getPlayers: async (options: YfbGetPlayersOptionsParams = {}) => {
       const {
         count = "3",
         start = "0",
@@ -93,7 +93,7 @@ export default function ({
 
       const { data } = response as AxiosResponse;
 
-      return { players: data } as YahooFantasyBasketballApiResponse;
+      return { players: data } as YfbApiResponse;
     },
     getStatCategories: async () => {
       const url = `${YAHOO_FANTASY_API_URL}/league/nba.l.102182/settings`;

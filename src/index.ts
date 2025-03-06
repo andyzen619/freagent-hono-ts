@@ -9,7 +9,8 @@ import YfbApiInit from "./lib/YfbApi/index.js";
 import PlayersSeed from "./seeders/Player.js";
 import PlayerStatsSeed from "./seeders/PlayerStat.js";
 
-import { execute, range, getUri } from "./lib/Utils.js";
+import { range, getUri } from "./lib/Utils.js";
+import { execute } from "./lib/Sqlite3.js";
 import login from "./routes/login.js";
 import callback from "./routes/callback.js";
 import type { YfbPlayer, YfbApi } from "./lib/YfbApi/types.js";
@@ -20,7 +21,7 @@ import {
   YfbGetPlayersOptionsSortTypeEnum,
 } from "./lib/YfbApi/types.js";
 
-import initGraphql from "./graphql/initGraphql.js";
+import { initGraphql } from "./graphql/index.js";
 
 const CLIENT_ID =
   "dj0yJmk9NWFQVWJadWZ4a3dNJmQ9WVdrOWRYTlFUbk5FWmswbWNHbzlNQT09JnM9Y29uc3VtZXJzZWNyZXQmc3Y9MCZ4PWVl";
@@ -66,9 +67,9 @@ serve({
   port,
 });
 
-export const graphql = initGraphql();
+const dbFilename = "fantasy-db.db";
 
-const dbFilename = "fantasy-db";
+export let db;
 
 fs.rm(dbFilename, () => {
   logger.info("Previous database wiped.");
@@ -77,7 +78,7 @@ fs.rm(dbFilename, () => {
     .then(async (module) => {
       const { authenticationToken } = module as any;
 
-      const db = new sqlite3.Database(dbFilename);
+      db = new sqlite3.Database(dbFilename);
 
       const yfbApi = YfbApiInit({
         authenticationToken,
@@ -116,14 +117,14 @@ fs.rm(dbFilename, () => {
           playersToSeed,
           statCategories,
         });
-
-        // await logSeeded({ db, logger });
       } finally {
         db.close();
       }
     })
     .catch((e) => logger.error(e));
 });
+
+export const graphql = initGraphql();
 
 async function getPlayersFromYfbApi({
   jobs,
@@ -164,7 +165,7 @@ async function getPlayersFromYfbApi({
   return { playersToSeed: playersFromApi };
 }
 
-async function logSeeded({ db, logger }: any) {
+export async function logSeeded({ db, logger }: any) {
   db.each(
     `select player_name, stat_name, stat_id, value from players INNER JOIN player_stats ON player_stats.player_key = players.player_key`,
     (error: any, stat: any) => {
