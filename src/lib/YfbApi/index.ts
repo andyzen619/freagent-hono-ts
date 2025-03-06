@@ -1,6 +1,6 @@
 import axios, { type AxiosResponse } from "axios";
 import { XMLParser } from "fast-xml-parser";
-import YfbApiError from "./errors/YfbApiError.js";
+import YfbApiError from "./YfbApiError.js";
 
 const YAHOO_FANTASY_API_URL = "https://fantasysports.yahooapis.com/fantasy/v2";
 
