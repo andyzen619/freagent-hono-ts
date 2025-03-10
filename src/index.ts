@@ -4,8 +4,8 @@ import fs from "fs";
 import sqlite3 from "sqlite3";
 
 import YfbApiInit from "./lib/YfbApi/index.js";
-import PlayersSeed from "./seeders/Player.js";
-import PlayerStatsSeed from "./seeders/PlayerStat.js";
+import PlayersSeed from "./databaseSeeds/Player.js";
+import PlayerStatsSeed from "./databaseSeeds/PlayerStat.js";
 
 import { range } from "./lib/Utils.js";
 import { execute } from "./lib/Sqlite3.js";
@@ -13,7 +13,7 @@ import { auth } from "./routers/auth/index.js";
 
 import { initGraphql } from "./graphql/index.js";
 import { initLogger } from "./lib/Logger.js";
-import { prepareSeedData } from "./seeders/index.js";
+import { prepareSeedData } from "./databaseSeeds/index.js";
 import { CONSTANT_DATABASE_FILENAME } from "./database/constants.js";
 
 export const logger = initLogger();
