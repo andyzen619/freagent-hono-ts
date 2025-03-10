@@ -5,10 +5,10 @@ import PlayerStat from "../models/PlayerStat.js";
 export default function PlayerStats({ db, logger }: SeederInitParams) {
   return {
     seed: async function ({
-      playersToSeed,
+      dataToSeed,
       statCategories,
     }: {
-      playersToSeed: YfbPlayer[];
+      dataToSeed: YfbPlayer[];
       statCategories: YfbStatCategory[];
     }) {
       logger.info("Seeding 'player_stats' database ...");
@@ -16,30 +16,27 @@ export default function PlayerStats({ db, logger }: SeederInitParams) {
       try {
         await PlayerStat(db).createTable();
 
-        await playersToSeed.reduce(
-          async (accPromise: any, player: YfbPlayer) => {
-            const acc = await accPromise;
+        await dataToSeed.reduce(async (accPromise: any, player: YfbPlayer) => {
+          const acc = await accPromise;
 
-            const statsToSeed = player.player_stats.stats.stat.map(
-              ({ stat_id, value }) =>
-                setNameOnStat({
-                  stat_id,
-                  value,
-                  player_key: player.player_key,
-                  statCategories,
-                })
-            );
+          const statsToSeed = player.player_stats.stats.stat.map(
+            ({ stat_id, value }) =>
+              setNameOnStat({
+                stat_id,
+                value,
+                player_key: player.player_key,
+                statCategories,
+              })
+          );
 
-            const promises = statsToSeed.map(async (playerStat) =>
-              PlayerStat(db).createFromYfbApi(playerStat)
-            );
+          const promises = statsToSeed.map(async (playerStat) =>
+            PlayerStat(db).createFromYfbApi(playerStat)
+          );
 
-            const seededStatsForPlayer = await Promise.all(promises);
+          const seededStatsForPlayer = await Promise.all(promises);
 
-            return [...acc, { key: player.player_key, seededStatsForPlayer }];
-          },
-          []
-        );
+          return [...acc, { key: player.player_key, seededStatsForPlayer }];
+        }, []);
       } catch (error) {
         logger.error(error, "Error during seeding: ");
       }

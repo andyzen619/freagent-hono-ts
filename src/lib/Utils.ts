@@ -7,7 +7,7 @@ export function getUri({ url }: GetUriParams) {
 
   const BASE_URI = `https://${requestUrl.host}`;
 
-  const REDIRECT_URI = `${BASE_URI}/callback`;
+  const REDIRECT_URI = `${BASE_URI}/auth/callback`;
 
   return { BASE_URI, REDIRECT_URI };
 }

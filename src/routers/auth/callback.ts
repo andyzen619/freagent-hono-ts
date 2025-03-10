@@ -3,7 +3,7 @@ import axios from "axios";
 import type { Context } from "hono";
 import type { GetUriFunction, Logger } from "./types.js";
 
-export default ({
+const callback = ({
   getUri,
   logger,
   TOKEN_URL,
@@ -48,7 +48,7 @@ export default ({
       return c.text("Authentication successful! You can now use the API.");
     } catch (error) {
       if (axios.isAxiosError(error)) {
-        logger.error("Error fetching access token:", error.response?.data);
+        logger.error("Error fetching access token:", error.response);
 
         return c.text("Authentication failed: " + error.response?.data?.error);
       }
@@ -58,3 +58,5 @@ export default ({
       return c.text("Authentication failed due to an unexpected error.", 500);
     }
   };
+
+export default callback;

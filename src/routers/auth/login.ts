@@ -1,7 +1,7 @@
 import type { Context } from "hono";
 import type { GetUriFunction } from "./types.js";
 
-export default ({
+const login = ({
   getUri,
   CLIENT_ID,
   AUTH_URL,
@@ -24,3 +24,5 @@ export default ({
 
     return c.redirect(authUrl);
   };
+
+export default login;
