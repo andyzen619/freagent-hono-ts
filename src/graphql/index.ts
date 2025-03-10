@@ -1,33 +1,22 @@
-import sqlite3 from "sqlite3";
-
 import type { PlayerStat } from "./types.js";
-import { execute } from "../lib/Sqlite3.js";
+import database from "../database/index.js";
 
 export function initGraphql() {
-  const dbFilename = "fantasy-db.db";
-
-  const db = new sqlite3.Database(dbFilename);
-
   return {
     Query: {
       playerStats: async (): Promise<PlayerStat[]> => {
-        const sqlResponse = await execute(
-          db,
-          `
-          select 
-          s.name as statName,
-          p.name as fullName,
-          value as statValue
-          from player_stats s
-          inner join players p
-          on s.key == p.key
-          `
-        ).catch((error) => {
-          console.error(error);
-        });
+        const dbResponse = await database
+          .selectFrom("player_stats")
+          .innerJoin("players", "players.key", "player_stats.key")
+          .select([
+            "players.name as fullName",
+            "player_stats.name as statName",
+            "player_stats.value as statValue",
+          ])
+          .execute();
 
-        const playerStats = sqlResponse.map((sqlItem) => {
-          const { statName, fullName, statValue } = sqlItem;
+        const playerStats = dbResponse.map((dbItem) => {
+          const { fullName, statName, statValue } = dbItem;
 
           return {
             fullName,
