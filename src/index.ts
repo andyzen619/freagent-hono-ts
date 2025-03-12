@@ -1,14 +1,12 @@
 import { serve } from "@hono/node-server";
 import { app } from "@getcronit/pylon";
-import fs from "fs";
-import sqlite3 from "sqlite3";
+import Database from "better-sqlite3";
 
 import YfbApiInit from "./lib/YfbApi/index.js";
 import PlayersSeed from "./databaseSeeds/Player.js";
 import PlayerStatsSeed from "./databaseSeeds/PlayerStat.js";
 
 import { range } from "./lib/Utils.js";
-import { execute } from "./lib/Sqlite3.js";
 import { auth } from "./routers/auth/index.js";
 
 import { initGraphql } from "./graphql/index.js";
@@ -35,22 +33,34 @@ serve({
 
 export let db;
 
-fs.rm(CONSTANT_DATABASE_FILENAME, () => {
-  logger.info("Previous database wiped.");
+const initDatabase = async ({ authenticationToken, db }) => {
+  db = new Database(CONSTANT_DATABASE_FILENAME);
 
-  import("../authenticationToken.json")
-    .then(async (module) => {
-      const { authenticationToken } = module as any;
+  await db.exec("DROP TABLE IF EXISTS players;");
 
-      await initDatabase({ authenticationToken });
-    })
-    .catch((e) => logger.error(e));
-});
+  await db.exec(`
+    CREATE TABLE IF NOT EXISTS players (
+      key TEXT PRIMARY KEY,
+      id INTEGER NOT NULL,
+      name TEXT NOT NULL,
+      primaryPosition TEXT NOT NULL,
+      status TEXT,
+      team TEXT NOT NULL
+    );
+  `);
 
-export const graphql = initGraphql();
+  await db.exec("DROP TABLE IF EXISTS player_stats;");
 
-const initDatabase = async ({ authenticationToken }) => {
-  db = new sqlite3.Database(CONSTANT_DATABASE_FILENAME);
+  await db.exec(`
+    CREATE TABLE IF NOT EXISTS player_stats (
+      key TEXT NOT NULL,
+      id INTEGER NOT NULL,
+      name TEXT,
+      value TEXT NOT NULL,
+      PRIMARY KEY (key, id), -- Composite key to avoid duplicate stats for a player
+      FOREIGN KEY (key) REFERENCES players(key) ON DELETE CASCADE
+    );
+  `);
 
   const yfbApi = YfbApiInit({
     authenticationToken,
@@ -74,16 +84,12 @@ const initDatabase = async ({ authenticationToken }) => {
 
   try {
     await PlayersSeed({
-      db,
-      execute,
       logger,
     }).seed({
       dataToSeed,
     });
 
     await PlayerStatsSeed({
-      db,
-      execute,
       logger,
     }).seed({
       dataToSeed,
@@ -95,3 +101,13 @@ const initDatabase = async ({ authenticationToken }) => {
     db.close();
   }
 };
+
+import("../authenticationToken.json")
+  .then(async (module) => {
+    const { authenticationToken } = module as any;
+
+    await initDatabase({ authenticationToken, db });
+  })
+  .catch((e) => logger.error(e));
+
+export const graphql = initGraphql();

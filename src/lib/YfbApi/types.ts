@@ -1,3 +1,5 @@
+import type { PlayersTable } from "../../database/types.js";
+
 export type YfbApiInitializationParams = {
   authenticationToken: string;
 };
@@ -39,7 +41,7 @@ export type YfbPlayer = {
   image_url: string;
   is_undroppable: number;
   position_type: string;
-  primary_position: string;
+  primary_position: PlayersTable["primaryPosition"];
   eligible_positions: {
     position: string[];
   };

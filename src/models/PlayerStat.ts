@@ -1,5 +1,3 @@
-import { execute } from "../lib/Sqlite3.js";
-
 type PlayerStatModel = {
   key: string;
   id: string;
@@ -14,7 +12,7 @@ type PlayerStatToSeed = {
   value: string;
 };
 
-export default function PlayerStat(db) {
+export default function PlayerStat() {
   return {
     async createFromYfbApi(
       playerStat: PlayerStatToSeed

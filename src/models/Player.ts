@@ -1,4 +1,3 @@
-import { execute } from "../lib/Sqlite3.js";
 import type { YfbPlayer } from "../lib/YfbApi/types.js";
 
 type PlayerModel = {
@@ -10,7 +9,7 @@ type PlayerModel = {
   team: string;
 };
 
-export default function Player(db) {
+export default function Player() {
   return {
     async createFromYfbApi(player: YfbPlayer): Promise<PlayerModel> {
       const dbResponse = await execute<PlayerModel>(

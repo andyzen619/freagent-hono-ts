@@ -9,7 +9,7 @@ export interface PlayersTable {
   key: string;
   id: number;
   name: string;
-  primaryPosition: "PG" | "SG" | "G" | "SF" | "F" | "C";
+  primaryPosition: "PG" | "SG" | "G" | "SF" | "F" | "PF" | "C";
   status: string;
   team: string;
 }
