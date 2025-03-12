@@ -3,15 +3,15 @@ import { app } from "@getcronit/pylon";
 import Database from "better-sqlite3";
 
 import YfbApiInit from "./lib/YfbApi/index.js";
-import PlayersSeed from "./databaseSeeds/Player.js";
-import PlayerStatsSeed from "./databaseSeeds/PlayerStat.js";
+import PlayersSeed from "./seeds/Player.js";
+import PlayerStatsSeed from "./seeds/PlayerStat.js";
 
 import { range } from "./lib/Utils.js";
 import { auth } from "./routers/auth/index.js";
 
 import { initGraphql } from "./graphql/index.js";
 import { initLogger } from "./lib/Logger.js";
-import { prepareSeedData } from "./databaseSeeds/index.js";
+import { prepareSeedData } from "./seeds/index.js";
 import { CONSTANT_DATABASE_FILENAME } from "./database/constants.js";
 
 export const logger = initLogger();
@@ -31,10 +31,18 @@ serve({
   port,
 });
 
-export let db;
+import("../authenticationToken.json")
+  .then(async (module) => {
+    const { authenticationToken } = module as any;
 
-const initDatabase = async ({ authenticationToken, db }) => {
-  db = new Database(CONSTANT_DATABASE_FILENAME);
+    await initDatabase({ authenticationToken });
+  })
+  .catch((e) => logger.error(e));
+
+export const graphql = initGraphql();
+
+const initDatabase = async ({ authenticationToken }) => {
+  const db = new Database(CONSTANT_DATABASE_FILENAME);
 
   await db.exec("DROP TABLE IF EXISTS players;");
 
@@ -101,13 +109,3 @@ const initDatabase = async ({ authenticationToken, db }) => {
     db.close();
   }
 };
-
-import("../authenticationToken.json")
-  .then(async (module) => {
-    const { authenticationToken } = module as any;
-
-    await initDatabase({ authenticationToken, db });
-  })
-  .catch((e) => logger.error(e));
-
-export const graphql = initGraphql();
