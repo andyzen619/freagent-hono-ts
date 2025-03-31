@@ -1,4 +1,4 @@
-import { getUri } from "../../lib/Utils.js";
+import { getUri } from "../../lib/Utils/index.js";
 import { logger } from "../../index.js";
 
 export type GetUriFunction = typeof getUri;

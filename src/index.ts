@@ -6,7 +6,7 @@ import YfbApiInit from "./lib/YfbApi/index.js";
 import PlayersSeed from "./seeds/Player.js";
 import PlayerStatsSeed from "./seeds/PlayerStat.js";
 
-import { range } from "./lib/Utils.js";
+import { range } from "./lib/Utils/index.js";
 import { auth } from "./routers/auth/index.js";
 
 import { initGraphql } from "./graphql/index.js";

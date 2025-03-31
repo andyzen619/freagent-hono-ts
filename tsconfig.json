@@ -14,5 +14,5 @@
     "jsxImportSource": "hono/jsx",
   },
   "extends": "@getcronit/pylon/tsconfig.pylon.json",
-  "include": ["pylon.d.ts", "src/**/*.ts"]
+  "include": ["pylon.d.ts", "src/**/*.ts", "src/lib/Utils/GraphqlToFhirParams/.test.ts"]
 }

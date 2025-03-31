@@ -3,7 +3,8 @@
   "type": "module",
   "scripts": {
     "dev": "pylon dev -c \"node --enable-source-maps .pylon/index.js\"",
-    "build": "pylon build"
+    "build": "pylon build",
+    "test": "vitest"
   },
   "dependencies": {
     "@getcronit/pylon": "^2.9.0",
@@ -22,6 +23,7 @@
   "devDependencies": {
     "@getcronit/pylon-dev": "^1.0.1",
     "@types/node": "^20.11.17",
-    "tsx": "^4.7.1"
+    "tsx": "^4.7.1",
+    "vitest": "^3.0.9"
   }
 }

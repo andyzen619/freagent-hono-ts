@@ -1,7 +1,7 @@
 import { Hono } from "hono";
 import login from "./login.js";
 import callback from "./callback.js";
-import { getUri } from "../../lib/Utils.js";
+import { getUri } from "../../lib/Utils/index.js";
 
 import {
   CONST_YFB_AUTH_URL,
